@@ -20,63 +20,113 @@ app.get('/admin', (req, res) => {
             body { font-family: Arial; background: #0a0a1a; color: #fff; padding: 20px; }
             .card { background: #1a1a2e; padding: 20px; border-radius: 10px; margin-bottom: 20px; }
             input, button { padding: 10px; margin: 5px; border-radius: 5px; border: none; }
-            input { background: #0a0a1a; color: #fff; border: 1px solid #333; width: 200px; }
-            button { background: #f5c842; color: #000; font-weight: bold; cursor: pointer; }
+            input { background: #0a0a1a; color: #fff; border: 1px solid #333; width: 300px; }
+            button { background: #f5c842; color: #000; font-weight: bold; cursor: pointer; padding: 10px 30px; }
+            button:hover { background: #ffd700; }
             table { width: 100%; border-collapse: collapse; }
             th, td { padding: 10px; text-align: left; border-bottom: 1px solid #333; }
             a { color: #64b5f6; }
+            .btn-delete { background: #e94560; color: #fff; padding: 5px 15px; }
+            .btn-delete:hover { background: #c62840; }
         </style>
     </head>
     <body>
         <h1>📊 Painel de Controle</h1>
         <div class="card">
             <h2>Criar Link</h2>
-            <input type="text" id="id" placeholder="ID (ex: teste)">
-            <input type="text" id="destino" placeholder="Destino (ex: https://google.com)">
-            <button onclick="criar()">Criar</button>
+            <input type="text" id="linkId" placeholder="ID (ex: teste)">
+            <input type="text" id="linkDestino" placeholder="Destino (ex: https://google.com)">
+            <button onclick="criarLink()">🚀 Criar</button>
         </div>
         <div class="card">
-            <h2>Links</h2>
-            <div id="links"></div>
+            <h2>Links Cadastrados</h2>
+            <div id="listaLinks">Carregando...</div>
         </div>
+
         <script>
-            async function carregar() {
+            // ============ CARREGAR LINKS ============
+            async function carregarLinks() {
                 try {
-                    const r = await fetch('/api/links');
-                    const links = await r.json();
+                    const response = await fetch('/api/links');
+                    const links = await response.json();
+                    
                     let html = '<table><tr><th>ID</th><th>Destino</th><th>URL</th><th>Ações</th></tr>';
-                    for (const [id, link] of Object.entries(links)) {
-                        const url = window.location.origin + '/' + id;
-                        html += '<tr>' +
-                            '<td>' + id + '</td>' +
-                            '<td>' + link.destino + '</td>' +
-                            '<td><a href="' + url + '" target="_blank">' + url + '</a></td>' +
-                            '<td><button onclick="deletar(\'' + id + '\')">🗑️</button></td>' +
-                        '</tr>';
+                    
+                    const ids = Object.keys(links);
+                    if (ids.length === 0) {
+                        html = '<p style="color: #666;">Nenhum link cadastrado ainda.</p>';
+                    } else {
+                        for (const id of ids) {
+                            const link = links[id];
+                            const url = window.location.origin + '/' + id;
+                            html += '<tr>' +
+                                '<td><strong>' + id + '</strong></td>' +
+                                '<td>' + link.destino + '</td>' +
+                                '<td><a href="' + url + '" target="_blank">' + url + '</a></td>' +
+                                '<td><button class="btn-delete" onclick="deletarLink(\'' + id + '\')">🗑️</button></td>' +
+                            '</tr>';
+                        }
+                        html += '</table>';
                     }
-                    html += '</table>';
-                    document.getElementById('links').innerHTML = html;
-                } catch(e) {
-                    console.error('Erro:', e);
+                    
+                    document.getElementById('listaLinks').innerHTML = html;
+                } catch (error) {
+                    document.getElementById('listaLinks').innerHTML = '<p style="color: #e94560;">Erro ao carregar links</p>';
+                    console.error('Erro:', error);
                 }
             }
-            async function criar() {
-                const id = document.getElementById('id').value;
-                const destino = document.getElementById('destino').value;
-                if (!id || !destino) return alert('Preencha ID e Destino');
-                await fetch('/api/links', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ id, destino })
-                });
-                carregar();
+
+            // ============ CRIAR LINK ============
+            async function criarLink() {
+                const id = document.getElementById('linkId').value.trim();
+                const destino = document.getElementById('linkDestino').value.trim();
+                
+                if (!id || !destino) {
+                    alert('⚠️ Preencha ID e Destino!');
+                    return;
+                }
+                
+                try {
+                    const response = await fetch('/api/links', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ id, destino })
+                    });
+                    
+                    if (response.ok) {
+                        alert('✅ Link criado com sucesso!');
+                        document.getElementById('linkId').value = '';
+                        document.getElementById('linkDestino').value = '';
+                        carregarLinks();
+                    } else {
+                        alert('❌ Erro ao criar link');
+                    }
+                } catch (error) {
+                    alert('❌ Erro ao criar link');
+                    console.error('Erro:', error);
+                }
             }
-            async function deletar(id) {
-                if (!confirm('Deletar "' + id + '"?')) return;
-                await fetch('/api/links/' + id, { method: 'DELETE' });
-                carregar();
+
+            // ============ DELETAR LINK ============
+            async function deletarLink(id) {
+                if (!confirm('Deletar o link "' + id + '"?')) return;
+                
+                try {
+                    const response = await fetch('/api/links/' + id, { method: 'DELETE' });
+                    if (response.ok) {
+                        alert('✅ Link deletado!');
+                        carregarLinks();
+                    } else {
+                        alert('❌ Erro ao deletar link');
+                    }
+                } catch (error) {
+                    alert('❌ Erro ao deletar link');
+                    console.error('Erro:', error);
+                }
             }
-            carregar();
+
+            // ============ INICIAR ============
+            carregarLinks();
         </script>
     </body>
     </html>
