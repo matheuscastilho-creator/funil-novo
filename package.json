@@ -1,0 +1,12 @@
+{
+  "name": "funil-novo",
+  "version": "1.0.0",
+  "description": "Funil de redirects white label",
+  "main": "api/index.js",
+  "scripts": {
+    "start": "node api/index.js"
+  },
+  "dependencies": {
+    "express": "^4.18.2"
+  }
+}
