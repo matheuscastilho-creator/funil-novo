@@ -36,7 +36,7 @@ app.get('/admin', (req, res) => {
             <h2>Criar Link</h2>
             <input type="text" id="linkId" placeholder="ID (ex: teste)">
             <input type="text" id="linkDestino" placeholder="Destino (ex: https://google.com)">
-            <button onclick="criarLink()">🚀 Criar</button>
+            <button id="btnCriar">🚀 Criar</button>
         </div>
         <div class="card">
             <h2>Links Cadastrados</h2>
@@ -44,18 +44,25 @@ app.get('/admin', (req, res) => {
         </div>
 
         <script>
+            // ============ VARIÁVEIS ============
+            const linkId = document.getElementById('linkId');
+            const linkDestino = document.getElementById('linkDestino');
+            const btnCriar = document.getElementById('btnCriar');
+            const listaLinks = document.getElementById('listaLinks');
+
             // ============ CARREGAR LINKS ============
             async function carregarLinks() {
                 try {
                     const response = await fetch('/api/links');
                     const links = await response.json();
                     
-                    let html = '<table><tr><th>ID</th><th>Destino</th><th>URL</th><th>Ações</th></tr>';
-                    
+                    let html = '';
                     const ids = Object.keys(links);
+                    
                     if (ids.length === 0) {
                         html = '<p style="color: #666;">Nenhum link cadastrado ainda.</p>';
                     } else {
+                        html = '<table><tr><th>ID</th><th>Destino</th><th>URL</th><th>Ações</th></tr>';
                         for (const id of ids) {
                             const link = links[id];
                             const url = window.location.origin + '/' + id;
@@ -69,17 +76,17 @@ app.get('/admin', (req, res) => {
                         html += '</table>';
                     }
                     
-                    document.getElementById('listaLinks').innerHTML = html;
+                    listaLinks.innerHTML = html;
                 } catch (error) {
-                    document.getElementById('listaLinks').innerHTML = '<p style="color: #e94560;">Erro ao carregar links</p>';
+                    listaLinks.innerHTML = '<p style="color: #e94560;">Erro ao carregar links</p>';
                     console.error('Erro:', error);
                 }
             }
 
             // ============ CRIAR LINK ============
             async function criarLink() {
-                const id = document.getElementById('linkId').value.trim();
-                const destino = document.getElementById('linkDestino').value.trim();
+                const id = linkId.value.trim();
+                const destino = linkDestino.value.trim();
                 
                 if (!id || !destino) {
                     alert('⚠️ Preencha ID e Destino!');
@@ -95,8 +102,8 @@ app.get('/admin', (req, res) => {
                     
                     if (response.ok) {
                         alert('✅ Link criado com sucesso!');
-                        document.getElementById('linkId').value = '';
-                        document.getElementById('linkDestino').value = '';
+                        linkId.value = '';
+                        linkDestino.value = '';
                         carregarLinks();
                     } else {
                         alert('❌ Erro ao criar link');
@@ -124,6 +131,9 @@ app.get('/admin', (req, res) => {
                     console.error('Erro:', error);
                 }
             }
+
+            // ============ EVENTO DO BOTÃO ============
+            btnCriar.addEventListener('click', criarLink);
 
             // ============ INICIAR ============
             carregarLinks();
@@ -196,7 +206,6 @@ app.get('/:id', (req, res) => {
         dados.stats[id].total++;
         console.log('📊 Clique em', id, 'Total:', dados.stats[id].total);
 
-        // PÁGINA DO MEIO (WHITE LABEL)
         const html = `
         <!DOCTYPE html>
         <html>
