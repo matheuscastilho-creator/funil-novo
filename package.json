@@ -1,12 +1,13 @@
 {
   "name": "funil-novo",
   "version": "1.0.0",
-  "description": "Funil de redirects white label",
+  "description": "Funil com Supabase + Short.io",
   "main": "api/index.js",
   "scripts": {
     "start": "node api/index.js"
   },
   "dependencies": {
-    "express": "^4.18.2"
+    "express": "^4.18.2",
+    "@supabase/supabase-js": "^2.39.0"
   }
 }
