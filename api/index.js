@@ -4,10 +4,9 @@ const PORT = process.env.PORT || 3000;
 
 app.use(express.json());
 
-// Dados em memória
-const dados = { 
-    links: {}, 
-    stats: {} 
+const dados = {
+    links: {},
+    stats: {}
 };
 
 // ============ PAINEL ADMIN ============
@@ -48,14 +47,12 @@ app.get('/admin', (req, res) => {
                     let html = '<table><tr><th>ID</th><th>Destino</th><th>URL</th><th>Ações</th></tr>';
                     for (const [id, link] of Object.entries(links)) {
                         const url = window.location.origin + '/' + id;
-                        html += \`
-                            <tr>
-                                <td>\${id}</td>
-                                <td>\${link.destino}</td>
-                                <td><a href="\${url}" target="_blank">\${url}</a></td>
-                                <td><button onclick="deletar('\${id}')">🗑️</button></td>
-                            </tr>
-                        \`;
+                        html += '<tr>' +
+                            '<td>' + id + '</td>' +
+                            '<td>' + link.destino + '</td>' +
+                            '<td><a href="' + url + '" target="_blank">' + url + '</a></td>' +
+                            '<td><button onclick="deletar(\'' + id + '\')">🗑️</button></td>' +
+                        '</tr>';
                     }
                     html += '</table>';
                     document.getElementById('links').innerHTML = html;
@@ -101,11 +98,11 @@ app.post('/api/links', (req, res) => {
         if (!id || !destino) {
             return res.status(400).json({ erro: 'Faltou id ou destino' });
         }
-        dados.links[id] = { 
-            destino, 
-            canal: 'padrao', 
-            campanha: id, 
-            utm_source: 'whatsapp' 
+        dados.links[id] = {
+            destino,
+            canal: 'padrao',
+            campanha: id,
+            utm_source: 'whatsapp'
         };
         res.json({ sucesso: true });
     } catch(e) {
@@ -131,12 +128,11 @@ app.delete('/api/links/:id', (req, res) => {
 app.get('/:id', (req, res) => {
     try {
         const id = req.params.id;
-        
-        // Ignora rotas especiais
+
         if (id === 'admin' || id === 'api') {
             return res.status(404).send('Rota não encontrada');
         }
-        
+
         const link = dados.links[id];
         if (!link) {
             return res.status(404).send(`
@@ -145,14 +141,13 @@ app.get('/:id', (req, res) => {
                 <a href="/admin">Voltar ao painel</a>
             `);
         }
-        
-        // Registra clique
+
         if (!dados.stats[id]) dados.stats[id] = { total: 0 };
         dados.stats[id].total++;
         console.log('📊 Clique em', id, 'Total:', dados.stats[id].total);
-        
-        // Página do meio (branca)
-        res.send(\`
+
+        // PÁGINA DO MEIO (WHITE LABEL)
+        const html = `
         <!DOCTYPE html>
         <html>
         <head>
@@ -179,12 +174,14 @@ app.get('/:id', (req, res) => {
             </div>
             <script>
                 setTimeout(function() {
-                    window.location.href = '\${link.destino}?ch=\${link.canal}&campanha=\${link.campanha}&utm_source=\${link.utm_source}';
+                    window.location.href = '${link.destino}?ch=${link.canal}&campanha=${link.campanha}&utm_source=${link.utm_source}';
                 }, 1500);
             </script>
         </body>
         </html>
-        \`);
+        `;
+
+        res.send(html);
     } catch(e) {
         console.error('Erro no funil:', e);
         res.status(500).send('Erro interno no servidor');
@@ -200,7 +197,6 @@ app.get('/', (req, res) => {
     `);
 });
 
-// ============ INICIAR SERVIDOR ============
 app.listen(PORT, () => {
     console.log('🚀 Servidor rodando na porta', PORT);
 });
