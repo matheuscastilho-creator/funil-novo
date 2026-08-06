@@ -13,7 +13,7 @@ const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
 
 // SHORT.IO
 const SHORTIO_API_KEY = 'sk_zwDYrsMA7LqU7uQp';
-const SHORTIO_DOMAIN = 'ahrcgi.short.gy';  // ← SEU DOMÍNIO
+const SHORTIO_DOMAIN = 'ahrcgi.short.gy';
 
 // ============ FUNÇÃO CRIAR LINK SHORT.IO ============
 async function criarLinkShortIO(linkId) {
